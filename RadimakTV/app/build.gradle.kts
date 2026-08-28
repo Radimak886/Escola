@@ -12,6 +12,12 @@ val bundledM3uProperties = Properties().run {
     this
 }
 
+val signingProperties = Properties().run {
+    val signingFile = rootProject.file("signing.properties")
+    if (signingFile.isFile) signingFile.inputStream().use(::load)
+    this
+}
+
 val bundledM3uUrl1 = bundledM3uProperties.getProperty(
     "BUNDLED_M3U_URL_1",
     "https://iptv-org.github.io/iptv/countries/br.m3u",
@@ -20,6 +26,16 @@ val bundledM3uUrl1 = bundledM3uProperties.getProperty(
 val bundledM3uUrl2 = bundledM3uProperties.getProperty(
     "BUNDLED_M3U_URL_2",
     "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
+).trim()
+
+val bundledM3uUrl3 = bundledM3uProperties.getProperty(
+    "BUNDLED_M3U_URL_3",
+    "https://iptv-org.github.io/iptv/index.m3u",
+).trim()
+
+val bundledM3uUrl4 = bundledM3uProperties.getProperty(
+    "BUNDLED_M3U_URL_4",
+    "https://raw.githubusercontent.com/joaoguidugli/FTA-IPTV-Brasil/master/playlist.m3u8",
 ).trim()
 
 fun String.asBuildConfigString(): String =
@@ -34,20 +50,41 @@ android {
         applicationId = "com.radimak.r3"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "0.6.1"
+        versionCode = 15
+        versionName = "0.7.1"
 
         buildConfigField("String", "BUNDLED_M3U_URL_1", bundledM3uUrl1.asBuildConfigString())
         buildConfigField("String", "BUNDLED_M3U_URL_2", bundledM3uUrl2.asBuildConfigString())
-        buildConfigField("int", "BUNDLED_M3U_VERSION", "2")
+        buildConfigField("String", "BUNDLED_M3U_URL_3", bundledM3uUrl3.asBuildConfigString())
+        buildConfigField("String", "BUNDLED_M3U_URL_4", bundledM3uUrl4.asBuildConfigString())
+        buildConfigField("int", "BUNDLED_M3U_VERSION", "4")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
+    signingConfigs {
+        if (
+            signingProperties.getProperty("storeFile").isNullOrBlank().not() &&
+            signingProperties.getProperty("storePassword").isNullOrBlank().not() &&
+            signingProperties.getProperty("keyAlias").isNullOrBlank().not() &&
+            signingProperties.getProperty("keyPassword").isNullOrBlank().not()
+        ) {
+            create("release") {
+                storeFile = rootProject.file(signingProperties.getProperty("storeFile"))
+                storePassword = signingProperties.getProperty("storePassword")
+                keyAlias = signingProperties.getProperty("keyAlias")
+                keyPassword = signingProperties.getProperty("keyPassword")
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

@@ -63,10 +63,12 @@ object M3uParser {
                         if (target != null && seenUrls.add(target.url)) {
                             val name = pending.name.ifBlank { pending.attributes["tvg-name"].orEmpty() }
                                 .ifBlank { "Canal sem nome" }
-                            val group = pending.attributes["group-title"]
+                            val sourceGroup = pending.attributes["group-title"]
                                 ?.takeIf { it.isNotBlank() }
                                 ?: extGroup
                                 ?: "Sem categoria"
+                            if (isRestrictedPaidChannel(name, sourceGroup)) continue
+                            val group = organizeGroup(name, sourceGroup)
                             items += IptvItem(
                                 name = name,
                                 streamUrl = target.url,
@@ -157,6 +159,44 @@ object M3uParser {
                 .endsWithAny(".mp4", ".mkv", ".avi", ".mov", ".webm") -> IptvContentType.MOVIE
 
             else -> IptvContentType.LIVE
+        }
+    }
+
+    private fun isRestrictedPaidChannel(name: String, group: String): Boolean {
+        val descriptor = "$name $group".lowercase(Locale.ROOT)
+        return listOf(
+            "premiere", "telecine", "combate", "hbo", "globosat",
+            "sportv", "fox sports", "espn brasil",
+        ).any(descriptor::contains)
+    }
+
+    private fun organizeGroup(name: String, sourceGroup: String): String {
+        val descriptor = "$name $sourceGroup".lowercase(Locale.ROOT)
+        return when {
+            listOf(
+                "globo", "sbt", "record", "band", "rede tv", "redetv", "tv brasil",
+                "tv cultura", "cnt", "tv camara", "tv câmara", "tv justiça",
+                "tv escola", "assembleia", "assembleia legislativa",
+            ).any(descriptor::contains) -> "Canais abertos"
+
+            listOf(
+                "esporte", "sport", "futebol", "cazé", "caze", "rally", "motorsport",
+                "automobil", "fight", "luta",
+            ).any(descriptor::contains) -> "Esportes"
+
+            listOf("news", "notícia", "noticia", "jornal", "cnn", "record news", "bandnews")
+                .any(descriptor::contains) -> "Notícias"
+
+            listOf("kids", "infantil", "cartoon", "criança", "crianca", "anime")
+                .any(descriptor::contains) -> "Infantil"
+
+            listOf("gospel", "relig", "aparecida", "canção nova", "cancao nova", "vida")
+                .any(descriptor::contains) -> "Religiosos"
+
+            listOf("music", "música", "musica", "mtv", "trace")
+                .any(descriptor::contains) -> "Música"
+
+            else -> sourceGroup
         }
     }
 

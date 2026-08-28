@@ -30,6 +30,18 @@ class UserPreferences(context: Context) {
                 description = "Canais gratuitos internacionais",
                 url = BuildConfig.BUNDLED_M3U_URL_2.trim(),
             ),
+            IptvServer(
+                id = "server_3",
+                label = "Servidor 3",
+                description = "Mundo — maior catálogo de canais públicos",
+                url = BuildConfig.BUNDLED_M3U_URL_3.trim(),
+            ),
+            IptvServer(
+                id = "server_4",
+                label = "Servidor 4",
+                description = "Brasil aberto — canais regionais e nacionais",
+                url = BuildConfig.BUNDLED_M3U_URL_4.trim(),
+            ),
         ).filter { it.url.isNotBlank() }
 
     val hasBundledIptvSource: Boolean

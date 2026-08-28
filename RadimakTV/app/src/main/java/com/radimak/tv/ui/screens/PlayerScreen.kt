@@ -63,7 +63,7 @@ fun PlayerScreen(
             .setAllowCrossProtocolRedirects(true)
             .setConnectTimeoutMs(20_000)
             .setReadTimeoutMs(30_000)
-            .setUserAgent("RadimakTV/0.6.0")
+            .setUserAgent("RadimakTV/0.7.0")
             .setDefaultRequestProperties(requestHeaders)
         val dataSourceFactory = DefaultDataSource.Factory(context, httpFactory)
         val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)

@@ -11,6 +11,22 @@ import java.io.StringReader
 
 class M3uParserTest {
     @Test
+    fun `organiza canais abertos e exclui canais de assinatura`() {
+        val playlist = """
+            #EXTM3U
+            #EXTINF:-1 group-title="Brazil",SBT
+            https://example.com/sbt.m3u8
+            #EXTINF:-1 group-title="Brazil",Premiere 1
+            https://example.com/premiere.m3u8
+        """.trimIndent()
+
+        val items = M3uParser.parse(playlist)
+
+        assertEquals(1, items.size)
+        assertEquals("Canais abertos", items.single().group)
+    }
+
+    @Test
     fun `le metadados e organiza tipos da lista`() {
         val playlist = """
             #EXTM3U

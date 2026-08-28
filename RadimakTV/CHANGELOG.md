@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## 0.7.1 — Mais Brasil
+
+- Adicionado o Servidor 3 com a lista mundial pública do IPTV-org.
+- Adicionado o Servidor 4 com uma seleção brasileira de canais abertos.
+- Preparada assinatura permanente para atualizações futuras sem reinstalação.
+
 ## 0.6.1 — player reforçado
 
 - Nova identidade de instalação para evitar conflitos de assinatura com versões antigas.

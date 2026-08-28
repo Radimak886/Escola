@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -100,17 +101,28 @@ fun IptvCatalogScreen(
     modifier: Modifier = Modifier,
 ) {
     var query by remember(contentType) { mutableStateOf("") }
+    var selectedGroup by remember(contentType, state.selectedIptvServerId) { mutableStateOf<String?>(null) }
     var filteredItems by remember(contentType) { mutableStateOf<List<IptvItem>>(emptyList()) }
     var isFiltering by remember(contentType) { mutableStateOf(true) }
     var showSourceSheet by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.iptvItems, contentType, query) {
+    val groups = remember(state.iptvItems, contentType) {
+        state.iptvItems.asSequence()
+            .filter { it.contentType == contentType }
+            .map { it.group }
+            .distinct()
+            .sorted()
+            .toList()
+    }
+
+    LaunchedEffect(state.iptvItems, contentType, query, selectedGroup) {
         isFiltering = true
         if (query.isNotBlank()) delay(180)
         val search = query.trim()
         filteredItems = withContext(Dispatchers.Default) {
             state.iptvItems.filter { item ->
                 item.contentType == contentType &&
+                    (selectedGroup == null || item.group == selectedGroup) &&
                     (search.isBlank() || item.name.contains(search, ignoreCase = true) ||
                         item.group.contains(search, ignoreCase = true))
             }
@@ -143,6 +155,16 @@ fun IptvCatalogScreen(
                     selectedId = state.selectedIptvServerId,
                     enabled = !state.isLoadingIptv,
                     onSelect = onSelectServer,
+                )
+            }
+        }
+
+        if (groups.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                IptvGroupSelector(
+                    groups = groups,
+                    selectedGroup = selectedGroup,
+                    onSelect = { selectedGroup = it },
                 )
             }
         }
@@ -203,7 +225,7 @@ fun IptvCatalogScreen(
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     EmptyCatalog(
                         title = "A lista está vazia",
-                        description = "Tente atualizar ou alterne entre Servidor 1 e Servidor 2.",
+                        description = "Tente atualizar ou alterne entre os servidores disponíveis.",
                         actionLabel = "Tentar novamente",
                         onAction = onRefresh,
                     )
@@ -255,7 +277,7 @@ private fun IptvServerSelector(
     onSelect: (String) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         servers.forEach { server ->
@@ -264,7 +286,31 @@ private fun IptvServerSelector(
                 onClick = { onSelect(server.id) },
                 enabled = enabled,
                 label = { Text(server.label) },
-                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun IptvGroupSelector(
+    groups: List<String>,
+    selectedGroup: String?,
+    onSelect: (String?) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FilterChip(
+            selected = selectedGroup == null,
+            onClick = { onSelect(null) },
+            label = { Text("Todos") },
+        )
+        groups.forEach { group ->
+            FilterChip(
+                selected = group == selectedGroup,
+                onClick = { onSelect(group) },
+                label = { Text(group) },
             )
         }
     }
