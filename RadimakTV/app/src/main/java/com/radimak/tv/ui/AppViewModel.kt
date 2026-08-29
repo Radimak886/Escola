@@ -209,6 +209,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val sourceChanged = preferences.iptvSource != newSource
         if (sourceChanged) iptvRepository.clearCache()
         preferences.iptvSource = newSource
+        preferences.usesBundledIptvSource = false
         _uiState.update {
             it.copy(
                 iptvItems = if (sourceChanged) emptyList() else it.iptvItems,
@@ -231,6 +232,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val sourceChanged = preferences.iptvSource != newSource
         if (sourceChanged) iptvRepository.clearCache()
         preferences.iptvSource = newSource
+        preferences.usesBundledIptvSource = false
         _uiState.update {
             it.copy(
                 iptvItems = if (sourceChanged) emptyList() else it.iptvItems,

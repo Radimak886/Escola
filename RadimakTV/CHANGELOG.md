@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## 0.7.2 — Lista particular no aparelho
+
+- A tela de fontes mantém os servidores públicos e ganhou a seção **Lista particular**.
+- A URL informada nessa seção fica exclusivamente no armazenamento do aparelho e não entra no APK.
+- A seleção da lista particular persiste ao fechar e abrir o aplicativo.
+
 ## 0.7.1 — Mais Brasil
 
 - Adicionado o Servidor 3 com a lista mundial pública do IPTV-org.

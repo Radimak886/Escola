@@ -16,6 +16,10 @@ class UserPreferences(context: Context) {
         get() = preferences.getString(KEY_IPTV_SOURCE, "").orEmpty()
         set(value) = preferences.edit().putString(KEY_IPTV_SOURCE, value).apply()
 
+    var usesBundledIptvSource: Boolean
+        get() = preferences.getBoolean(KEY_USES_BUNDLED_IPTV_SOURCE, true)
+        set(value) = preferences.edit().putBoolean(KEY_USES_BUNDLED_IPTV_SOURCE, value).apply()
+
     val bundledIptvServers: List<IptvServer>
         get() = listOf(
             IptvServer(
@@ -54,6 +58,7 @@ class UserPreferences(context: Context) {
         }
 
     fun applyBundledIptvSourceIfNeeded(): Boolean {
+        if (!usesBundledIptvSource) return false
         val server = selectedBundledIptvServer ?: return false
         val bundledVersion = BuildConfig.BUNDLED_M3U_VERSION
         val bundledSource = "url:${server.url}"
@@ -80,6 +85,7 @@ class UserPreferences(context: Context) {
             .putString(KEY_SELECTED_BUNDLED_IPTV_SERVER, server.id)
             .putString(KEY_IPTV_SOURCE, source)
             .putInt(KEY_BUNDLED_IPTV_VERSION, BuildConfig.BUNDLED_M3U_VERSION)
+            .putBoolean(KEY_USES_BUNDLED_IPTV_SOURCE, true)
             .apply()
         return changed
     }
@@ -108,6 +114,7 @@ class UserPreferences(context: Context) {
         private const val KEY_IPTV_SOURCE = "iptv_source"
         private const val KEY_BUNDLED_IPTV_VERSION = "bundled_iptv_version"
         private const val KEY_SELECTED_BUNDLED_IPTV_SERVER = "selected_bundled_iptv_server"
+        private const val KEY_USES_BUNDLED_IPTV_SOURCE = "uses_bundled_iptv_source"
 
         val defaultServices = listOf(
             StreamingService("netflix", "Netflix", listOf("Netflix"), enabled = true),

@@ -533,12 +533,14 @@ private fun IptvSourceSheet(
                     color = RadimakTextMuted,
                     style = MaterialTheme.typography.labelSmall,
                 )
-            } else {
-                Text(
-                    "Use uma lista pública ou conteúdo que você tenha autorização para acessar. O app não fornece canais.",
-                    color = RadimakTextMuted,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            }
+            HorizontalDivider(color = Color(0xFF313136), modifier = Modifier.padding(vertical = 2.dp))
+            Text("Lista particular", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Para testar uma fonte particular, informe a URL somente neste aparelho. Ela não é incluída no APK.",
+                color = RadimakTextMuted,
+                style = MaterialTheme.typography.bodySmall,
+            )
                 OutlinedTextField(
                 value = urlDraft,
                 onValueChange = { urlDraft = it },
@@ -623,7 +625,6 @@ private fun IptvSourceSheet(
                     color = RadimakTextMuted,
                     style = MaterialTheme.typography.labelSmall,
                 )
-            }
         }
     }
 }
