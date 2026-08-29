@@ -44,6 +44,7 @@ data class AppUiState(
     val isLoadingIptv: Boolean = false,
     val hasIptvSource: Boolean = false,
     val hasBundledIptvSource: Boolean = false,
+    val hasPrivateIptvSource: Boolean = false,
     val iptvServers: List<IptvServer> = emptyList(),
     val selectedIptvServerId: String? = null,
     val selectedIptvServerLabel: String = "",
@@ -67,9 +68,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             isDemoMode = preferences.tmdbToken.isBlank(),
             hasIptvSource = preferences.iptvSource.isNotBlank(),
             hasBundledIptvSource = preferences.hasBundledIptvSource,
-            iptvServers = preferences.bundledIptvServers,
-            selectedIptvServerId = preferences.selectedBundledIptvServer?.id,
-            selectedIptvServerLabel = preferences.selectedBundledIptvServer?.label.orEmpty(),
+            hasPrivateIptvSource = preferences.hasPrivateIptvSource,
+            iptvServers = preferences.availableIptvServers,
+            selectedIptvServerId = if (preferences.usesBundledIptvSource) preferences.selectedBundledIptvServer?.id else UserPreferences.PRIVATE_SERVER_ID,
+            selectedIptvServerLabel = if (preferences.usesBundledIptvSource) preferences.selectedBundledIptvServer?.label.orEmpty() else preferences.privateIptvServer.label,
             isLoadingIptv = preferences.iptvSource.isNotBlank(),
         ),
     )
@@ -210,12 +212,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (sourceChanged) iptvRepository.clearCache()
         preferences.iptvSource = newSource
         preferences.usesBundledIptvSource = false
+        preferences.privateIptvSource = newSource
         _uiState.update {
             it.copy(
                 iptvItems = if (sourceChanged) emptyList() else it.iptvItems,
                 hasIptvSource = true,
-                selectedIptvServerId = null,
-                selectedIptvServerLabel = "",
+                hasPrivateIptvSource = true,
+                iptvServers = preferences.availableIptvServers,
+                selectedIptvServerId = UserPreferences.PRIVATE_SERVER_ID,
+                selectedIptvServerLabel = preferences.privateIptvServer.label,
             )
         }
         refreshIptv()
@@ -233,18 +238,42 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (sourceChanged) iptvRepository.clearCache()
         preferences.iptvSource = newSource
         preferences.usesBundledIptvSource = false
+        preferences.privateIptvSource = newSource
         _uiState.update {
             it.copy(
                 iptvItems = if (sourceChanged) emptyList() else it.iptvItems,
                 hasIptvSource = true,
-                selectedIptvServerId = null,
-                selectedIptvServerLabel = "",
+                hasPrivateIptvSource = true,
+                iptvServers = preferences.availableIptvServers,
+                selectedIptvServerId = UserPreferences.PRIVATE_SERVER_ID,
+                selectedIptvServerLabel = preferences.privateIptvServer.label,
             )
         }
         refreshIptv()
     }
 
     fun selectIptvServer(serverId: String) {
+        if (serverId == UserPreferences.PRIVATE_SERVER_ID) {
+            if (!preferences.hasPrivateIptvSource) {
+                _uiState.update { it.copy(message = "Configure o Servidor 2 — Radimak TV primeiro.") }
+                return
+            }
+            val changed = preferences.selectPrivateIptvServer()
+            _uiState.update {
+                it.copy(
+                    iptvItems = if (changed) emptyList() else it.iptvItems,
+                    hasIptvSource = true,
+                    hasPrivateIptvSource = true,
+                    iptvServers = preferences.availableIptvServers,
+                    selectedIptvServerId = UserPreferences.PRIVATE_SERVER_ID,
+                    selectedIptvServerLabel = preferences.privateIptvServer.label,
+                    isLoadingIptv = true,
+                    message = null,
+                )
+            }
+            if (changed) loadCachedIptvThenRefresh() else refreshIptv()
+            return
+        }
         val changed = preferences.selectBundledIptvServer(serverId)
         val selectedServer = preferences.selectedBundledIptvServer ?: return
         _uiState.update {
@@ -252,7 +281,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 iptvItems = if (changed) emptyList() else it.iptvItems,
                 hasIptvSource = true,
                 hasBundledIptvSource = true,
-                iptvServers = preferences.bundledIptvServers,
+                iptvServers = preferences.availableIptvServers,
                 selectedIptvServerId = selectedServer.id,
                 selectedIptvServerLabel = selectedServer.label,
                 isLoadingIptv = true,
@@ -309,6 +338,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearIptv() {
         iptvJob?.cancel()
+        if (!preferences.usesBundledIptvSource) preferences.privateIptvSource = ""
         preferences.iptvSource = ""
         iptvRepository.clearCache()
         _uiState.update {

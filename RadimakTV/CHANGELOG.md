@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## 0.8.0 — Servidor 2 Radimak TV
+
+- Mantém somente o Servidor 1 com a fonte pública brasileira.
+- Adiciona Servidor 2 — Radimak TV, configurado uma vez e salvo exclusivamente no aparelho.
+
 ## 0.7.2 — Lista particular no aparelho
 
 - A tela de fontes mantém os servidores públicos e ganhou a seção **Lista particular**.

@@ -20,6 +20,11 @@ class UserPreferences(context: Context) {
         get() = preferences.getBoolean(KEY_USES_BUNDLED_IPTV_SOURCE, true)
         set(value) = preferences.edit().putBoolean(KEY_USES_BUNDLED_IPTV_SOURCE, value).apply()
 
+    var privateIptvSource: String
+        get() = preferences.getString(KEY_PRIVATE_IPTV_SOURCE, "").orEmpty()
+            .ifBlank { if (!usesBundledIptvSource) iptvSource else "" }
+        set(value) = preferences.edit().putString(KEY_PRIVATE_IPTV_SOURCE, value).apply()
+
     val bundledIptvServers: List<IptvServer>
         get() = listOf(
             IptvServer(
@@ -28,25 +33,20 @@ class UserPreferences(context: Context) {
                 description = "Brasil — TV, filmes e séries",
                 url = BuildConfig.BUNDLED_M3U_URL_1.trim(),
             ),
-            IptvServer(
-                id = "server_2",
-                label = "Servidor 2",
-                description = "Canais gratuitos internacionais",
-                url = BuildConfig.BUNDLED_M3U_URL_2.trim(),
-            ),
-            IptvServer(
-                id = "server_3",
-                label = "Servidor 3",
-                description = "Mundo — maior catálogo de canais públicos",
-                url = BuildConfig.BUNDLED_M3U_URL_3.trim(),
-            ),
-            IptvServer(
-                id = "server_4",
-                label = "Servidor 4",
-                description = "Brasil aberto — canais regionais e nacionais",
-                url = BuildConfig.BUNDLED_M3U_URL_4.trim(),
-            ),
         ).filter { it.url.isNotBlank() }
+
+    val privateIptvServer = IptvServer(
+        id = PRIVATE_SERVER_ID,
+        label = "Servidor 2 — Radimak TV",
+        description = "Lista configurada neste aparelho",
+        url = "",
+    )
+
+    val availableIptvServers: List<IptvServer>
+        get() = bundledIptvServers + privateIptvServer
+
+    val hasPrivateIptvSource: Boolean
+        get() = privateIptvSource.isNotBlank()
 
     val hasBundledIptvSource: Boolean
         get() = bundledIptvServers.isNotEmpty()
@@ -90,6 +90,17 @@ class UserPreferences(context: Context) {
         return changed
     }
 
+    fun selectPrivateIptvServer(): Boolean {
+        val source = privateIptvSource
+        if (source.isBlank()) return false
+        val changed = iptvSource != source
+        preferences.edit()
+            .putString(KEY_IPTV_SOURCE, source)
+            .putBoolean(KEY_USES_BUNDLED_IPTV_SOURCE, false)
+            .apply()
+        return changed
+    }
+
     fun services(): List<StreamingService> = defaultServices.map { service ->
         service.copy(enabled = preferences.getBoolean("service_${service.id}", service.enabled))
     }
@@ -115,6 +126,8 @@ class UserPreferences(context: Context) {
         private const val KEY_BUNDLED_IPTV_VERSION = "bundled_iptv_version"
         private const val KEY_SELECTED_BUNDLED_IPTV_SERVER = "selected_bundled_iptv_server"
         private const val KEY_USES_BUNDLED_IPTV_SOURCE = "uses_bundled_iptv_source"
+        private const val KEY_PRIVATE_IPTV_SOURCE = "private_iptv_source"
+        const val PRIVATE_SERVER_ID = "server_2_radimak"
 
         val defaultServices = listOf(
             StreamingService("netflix", "Netflix", listOf("Netflix"), enabled = true),

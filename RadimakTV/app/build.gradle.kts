@@ -23,21 +23,6 @@ val bundledM3uUrl1 = bundledM3uProperties.getProperty(
     "https://iptv-org.github.io/iptv/countries/br.m3u",
 ).trim()
 
-val bundledM3uUrl2 = bundledM3uProperties.getProperty(
-    "BUNDLED_M3U_URL_2",
-    "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
-).trim()
-
-val bundledM3uUrl3 = bundledM3uProperties.getProperty(
-    "BUNDLED_M3U_URL_3",
-    "https://iptv-org.github.io/iptv/index.m3u",
-).trim()
-
-val bundledM3uUrl4 = bundledM3uProperties.getProperty(
-    "BUNDLED_M3U_URL_4",
-    "https://raw.githubusercontent.com/joaoguidugli/FTA-IPTV-Brasil/master/playlist.m3u8",
-).trim()
-
 fun String.asBuildConfigString(): String =
     "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
@@ -50,14 +35,11 @@ android {
         applicationId = "com.radimak.r3"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "0.7.2"
+        versionCode = 17
+        versionName = "0.8.0"
 
         buildConfigField("String", "BUNDLED_M3U_URL_1", bundledM3uUrl1.asBuildConfigString())
-        buildConfigField("String", "BUNDLED_M3U_URL_2", bundledM3uUrl2.asBuildConfigString())
-        buildConfigField("String", "BUNDLED_M3U_URL_3", bundledM3uUrl3.asBuildConfigString())
-        buildConfigField("String", "BUNDLED_M3U_URL_4", bundledM3uUrl4.asBuildConfigString())
-        buildConfigField("int", "BUNDLED_M3U_VERSION", "4")
+        buildConfigField("int", "BUNDLED_M3U_VERSION", "5")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

@@ -148,15 +148,19 @@ fun IptvCatalogScreen(
             )
         }
 
-        if (state.iptvServers.size > 1) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                IptvServerSelector(
-                    servers = state.iptvServers,
-                    selectedId = state.selectedIptvServerId,
-                    enabled = !state.isLoadingIptv,
-                    onSelect = onSelectServer,
-                )
-            }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            IptvServerSelector(
+                servers = state.iptvServers,
+                selectedId = state.selectedIptvServerId,
+                enabled = !state.isLoadingIptv,
+                onSelect = { serverId ->
+                    if (serverId == "server_2_radimak" && !state.hasPrivateIptvSource) {
+                        showSourceSheet = true
+                    } else {
+                        onSelectServer(serverId)
+                    }
+                },
+            )
         }
 
         if (groups.isNotEmpty()) {
@@ -497,7 +501,7 @@ private fun IptvSourceSheet(
                     color = RadimakTextMuted,
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                state.iptvServers.forEach { server ->
+                state.iptvServers.filter { it.url.isNotBlank() }.forEach { server ->
                     val selected = server.id == state.selectedIptvServerId
                     Button(
                         onClick = {
@@ -535,7 +539,7 @@ private fun IptvSourceSheet(
                 )
             }
             HorizontalDivider(color = Color(0xFF313136), modifier = Modifier.padding(vertical = 2.dp))
-            Text("Lista particular", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Servidor 2 — Radimak TV", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Para testar uma fonte particular, informe a URL somente neste aparelho. Ela não é incluída no APK.",
                 color = RadimakTextMuted,
